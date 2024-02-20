@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"spotify-playlist-backup/auth"
+
 	"github.com/joho/godotenv"
 )
 
@@ -24,7 +26,8 @@ func main() {
 	}
 
 	client := getHttpClient()
-	fmt.Println(fetch(endpoint, client))
+	authResponse, _ := auth.Authenticate(client)
+	fmt.Println(fetch(endpoint, client, authResponse.AccessToken))
 }
 
 func getHttpClient() http.Client {
@@ -32,9 +35,9 @@ func getHttpClient() http.Client {
 	return *client
 }
 
-func fetch(url string, client http.Client) string {
+func fetch(url string, client http.Client, bearer string) string {
 	req, _ := http.NewRequest("GET", getEndpoint(), nil)
-	req.Header.Set("Authorization", "Bearer "+os.Getenv("BEARER"))
+	req.Header.Set("Authorization", "Bearer "+bearer)
 
 	response, err := client.Do(req)
 	if err != nil {
