@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"spotify-playlist-backup/auth"
+	auth "spotify-playlist-backup/apiCore"
 
 	"github.com/joho/godotenv"
 )
