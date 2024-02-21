@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"spotify-playlist-backup/apiCore"
 
@@ -50,6 +51,11 @@ type Artist struct {
 	Name string `json:"name"`
 }
 
+type Result struct {
+	Playlists []Playlist2
+	UpdatedAt string
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -66,6 +72,8 @@ func main() {
 		return
 	}
 
+	result := Result{UpdatedAt: time.Now().Format("2006-01-02 15:04")}
+
 	for i := range list.Items {
 		playlistApiEndpoint := list.Items[i].Url
 		playlistItemsResponse := apiCore.Fetch(playlistApiEndpoint+"/tracks", client, authResponse.AccessToken)
@@ -75,11 +83,24 @@ func main() {
 			fmt.Println(err.Error())
 			return
 		}
-		var result Playlist2
-		result.Name = list.Items[i].Name
+		var p Playlist2
+		p.Name = list.Items[i].Name
 		for i := range list2.Items {
-			result.Songs = append(result.Songs, list2.Items[i].Track)
+			p.Songs = append(p.Songs, list2.Items[i].Track)
 		}
-		fmt.Println((result))
+		result.Playlists = append(result.Playlists, p)
 	}
+
+	jsonData, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	err = os.WriteFile("output.json", []byte(string(jsonData)), 0644)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 }
