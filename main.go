@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	"spotify-playlist-backup/pkg/fetch"
 	"spotify-playlist-backup/pkg/parser"
+	"spotify-playlist-backup/pkg/write"
 
 	"github.com/joho/godotenv"
 )
@@ -47,18 +47,7 @@ func main() {
 		Playlists: playlists,
 	}
 
-	jsonData, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	err = os.WriteFile("output.json", []byte(string(jsonData)), 0644)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
+	write.WriteToJson(result)
 }
 
 func getUserPlaylistMeta() (parser.UserPlaylistsResponse, error) {
