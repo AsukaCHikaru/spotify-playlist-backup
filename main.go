@@ -31,9 +31,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	client := apiCore.GetHttpClient()
-	authResponse, _ := apiCore.Authenticate(client)
-	playlistResponse := apiCore.Fetch(getEndpoint(), client, authResponse.AccessToken)
+	playlistResponse, err := apiCore.Fetch(getEndpoint())
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	playlistMeta, err := parser.ParseUserPlaylists(playlistResponse)
 	if err != nil {
@@ -44,7 +46,11 @@ func main() {
 
 	for i := range playlistMeta.Items {
 		item := playlistMeta.Items[i]
-		playlistItemsResponse := apiCore.Fetch(item.Tracks.Url, client, authResponse.AccessToken)
+		playlistItemsResponse, err := apiCore.Fetch(item.Tracks.Url)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
 		playlist, err := parser.ParsePlaylistItems(playlistItemsResponse, item.Name)
 		if err != nil {
 			fmt.Println(err.Error())
