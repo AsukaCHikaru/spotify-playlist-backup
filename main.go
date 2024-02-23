@@ -31,33 +31,20 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	playlistResponse, err := apiCore.Fetch(getEndpoint())
+	playlistMeta, err := getUserPlaylistMeta()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	playlistMeta, err := parser.ParseUserPlaylists(playlistResponse)
+	playlists, err := getPlaylists(playlistMeta)
 	if err != nil {
 		fmt.Println(err.Error())
+		return
 	}
-
-	result := Snapshot{UpdatedAt: time.Now().Format("2006-01-02 15:04")}
-
-	for i := range playlistMeta.Items {
-		item := playlistMeta.Items[i]
-		playlistItemsResponse, err := apiCore.Fetch(item.Tracks.Url)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		playlist, err := parser.ParsePlaylistItems(playlistItemsResponse, item.Name)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		result.Playlists = append(result.Playlists, playlist)
+	result := Snapshot{
+		UpdatedAt: time.Now().Format("2006-01-02 15:04"),
+		Playlists: playlists,
 	}
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")
@@ -72,4 +59,36 @@ func main() {
 		return
 	}
 
+}
+
+func getUserPlaylistMeta() (parser.UserPlaylistsResponse, error) {
+	playlistResponse, err := apiCore.Fetch(getEndpoint())
+	if err != nil {
+		fmt.Println(err.Error())
+		return parser.UserPlaylistsResponse{}, err
+	}
+
+	playlistMeta, err := parser.ParseUserPlaylists(playlistResponse)
+	if err != nil {
+		return parser.UserPlaylistsResponse{}, err
+	}
+	return playlistMeta, nil
+}
+
+func getPlaylists(meta parser.UserPlaylistsResponse) ([]parser.Playlist, error) {
+	var playlists []parser.Playlist
+	for i := range meta.Items {
+		item := meta.Items[i]
+		playlistItemsResponse, err := apiCore.Fetch(item.Tracks.Url)
+		if err != nil {
+			return []parser.Playlist{}, err
+		}
+		playlist, err := parser.ParsePlaylistItems(playlistItemsResponse, item.Name)
+		if err != nil {
+			return []parser.Playlist{}, err
+		}
+
+		playlists = append(playlists, playlist)
+	}
+	return playlists, nil
 }
