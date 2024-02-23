@@ -7,6 +7,7 @@ import (
 )
 
 func WriteToJson(result any) {
+	fmt.Println("Writing to file...")
 	jsonData, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		fmt.Println(err.Error())

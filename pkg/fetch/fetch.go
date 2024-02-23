@@ -27,6 +27,7 @@ type AuthResponse struct {
 }
 
 func authenticate() (AuthResponse, error) {
+	fmt.Println("Authenticating...")
 	body := url.Values{}
 	body.Set("grant_type", "client_credentials")
 	encodedBody := body.Encode()

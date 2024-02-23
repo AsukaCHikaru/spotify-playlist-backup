@@ -48,9 +48,11 @@ func main() {
 	}
 
 	write.WriteToJson(result)
+	fmt.Println("Backup completed!")
 }
 
 func getUserPlaylistMeta() (parser.UserPlaylistsResponse, error) {
+	fmt.Println("Fetching users' playlists...")
 	playlistResponse, err := fetch.Fetch(getEndpoint())
 	if err != nil {
 		fmt.Println(err.Error())
@@ -68,6 +70,7 @@ func getPlaylists(meta parser.UserPlaylistsResponse) ([]parser.Playlist, error) 
 	var playlists []parser.Playlist
 	for i := range meta.Items {
 		item := meta.Items[i]
+		fmt.Printf("Fetching playlist %v...", item.Name)
 		playlistItemsResponse, err := fetch.Fetch(item.Tracks.Url)
 		if err != nil {
 			return []parser.Playlist{}, err
@@ -77,6 +80,7 @@ func getPlaylists(meta parser.UserPlaylistsResponse) ([]parser.Playlist, error) 
 			return []parser.Playlist{}, err
 		}
 
+		fmt.Printf("complete\n")
 		playlists = append(playlists, playlist)
 	}
 	return playlists, nil
