@@ -1,4 +1,4 @@
-module spotify-playlist-backup
+module github.com/asukachikaru/spotify-playlist-backup
 
 go 1.22.0
 

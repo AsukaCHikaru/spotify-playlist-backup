@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"spotify-playlist-backup/pkg/fetch"
-	"spotify-playlist-backup/pkg/parser"
-	"spotify-playlist-backup/pkg/write"
+	"github.com/asukachikaru/spotify-playlist-backup/pkg/fetch"
+	"github.com/asukachikaru/spotify-playlist-backup/pkg/parser"
+	"github.com/asukachikaru/spotify-playlist-backup/pkg/write"
 
 	"github.com/joho/godotenv"
 )
