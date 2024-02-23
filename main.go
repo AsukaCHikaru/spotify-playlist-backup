@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"spotify-playlist-backup/apiCore"
-	"spotify-playlist-backup/parser"
+	"spotify-playlist-backup/pkg/fetch"
+	"spotify-playlist-backup/pkg/parser"
 
 	"github.com/joho/godotenv"
 )
@@ -62,7 +62,7 @@ func main() {
 }
 
 func getUserPlaylistMeta() (parser.UserPlaylistsResponse, error) {
-	playlistResponse, err := apiCore.Fetch(getEndpoint())
+	playlistResponse, err := fetch.Fetch(getEndpoint())
 	if err != nil {
 		fmt.Println(err.Error())
 		return parser.UserPlaylistsResponse{}, err
@@ -79,7 +79,7 @@ func getPlaylists(meta parser.UserPlaylistsResponse) ([]parser.Playlist, error) 
 	var playlists []parser.Playlist
 	for i := range meta.Items {
 		item := meta.Items[i]
-		playlistItemsResponse, err := apiCore.Fetch(item.Tracks.Url)
+		playlistItemsResponse, err := fetch.Fetch(item.Tracks.Url)
 		if err != nil {
 			return []parser.Playlist{}, err
 		}

@@ -1,4 +1,4 @@
-package apiCore
+package fetch
 
 import (
 	"bytes"
