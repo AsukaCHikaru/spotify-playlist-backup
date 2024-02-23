@@ -13,46 +13,41 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var endpoint = "https://api.spotify.com/v1/users/{id}/playlists?limit=50"
+var endpoint = "https://api.spotify.com/v1/users/{id}/playlists?limit=2"
 
 func getEndpoint() string {
 	return strings.Replace(endpoint, "{id}", os.Getenv("USER_ID"), 1)
 }
 
-type PlaylistItem struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-	Url  string `json:"href"`
+type UserPlaylistsResponse struct {
+	Items []struct {
+		Id     string `json:"id"`
+		Name   string `json:"name"`
+		Tracks struct {
+			Url string `json:"href"`
+		} `json:"tracks"`
+	} `json:"items"`
 }
 
-type Playlists struct {
-	Items []PlaylistItem `json:"items"`
-}
-
-type PlaylistItemList struct {
-	Items []TrackItem `json:"items"`
-}
-
-type TrackItem struct {
-	Track Track `json:"track"`
+type PlaylistItemsResponse struct {
+	Items []struct {
+		Track Track `json:"track"`
+	} `json:"items"`
 }
 
 type Track struct {
 	Name    string   `json:"name"`
 	Artists []Artist `json:"artists"`
 }
-
-type Playlist2 struct {
-	Name  string
-	Songs []Track
-}
-
 type Artist struct {
 	Name string `json:"name"`
 }
-
-type Result struct {
-	Playlists []Playlist2
+type Playlist struct {
+	Name  string
+	Songs []Track
+}
+type Snapshot struct {
+	Playlists []Playlist
 	UpdatedAt string
 }
 
@@ -65,30 +60,30 @@ func main() {
 	client := apiCore.GetHttpClient()
 	authResponse, _ := apiCore.Authenticate(client)
 	playlistResponse := apiCore.Fetch(getEndpoint(), client, authResponse.AccessToken)
-	var list Playlists
+	var list UserPlaylistsResponse
 	err = json.Unmarshal([]byte(playlistResponse), &list)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	result := Result{UpdatedAt: time.Now().Format("2006-01-02 15:04")}
+	result := Snapshot{UpdatedAt: time.Now().Format("2006-01-02 15:04")}
 
 	for i := range list.Items {
-		playlistApiEndpoint := list.Items[i].Url
-		playlistItemsResponse := apiCore.Fetch(playlistApiEndpoint+"/tracks", client, authResponse.AccessToken)
-		var list2 PlaylistItemList
-		err = json.Unmarshal([]byte(playlistItemsResponse), &list2)
+		item := list.Items[i]
+		playlistItemsResponse := apiCore.Fetch(item.Tracks.Url, client, authResponse.AccessToken)
+		var playlistItems PlaylistItemsResponse
+		err = json.Unmarshal([]byte(playlistItemsResponse), &playlistItems)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-		var p Playlist2
-		p.Name = list.Items[i].Name
-		for i := range list2.Items {
-			p.Songs = append(p.Songs, list2.Items[i].Track)
+		var playlist Playlist
+		playlist.Name = item.Name
+		for i := range playlistItems.Items {
+			playlist.Songs = append(playlist.Songs, playlistItems.Items[i].Track)
 		}
-		result.Playlists = append(result.Playlists, p)
+		result.Playlists = append(result.Playlists, playlist)
 	}
 
 	jsonData, err := json.MarshalIndent(result, "", "  ")
